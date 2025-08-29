@@ -35,7 +35,9 @@ const Cart = () => {
       }
 
       const data = await response.json();
-      setCartItems((prevItems) => [...prevItems, ...data.results]);
+      console.log(data);
+      
+      setCartItems(data.results);
       setNextUrl(data.next);
     } catch (err) {
       console.error("Error fetching cart items:", err);
@@ -356,7 +358,7 @@ const Cart = () => {
         {cartItems.map((item) => (
           <div key={item.id} className="mb-4 grid grid-cols-3 gap-4 items-center">
             <p>
-              {t("host_plan", { name: item.plan?.name || t("unknown"), domain: item.configs?.domain || t("no_domain") })}
+              {t("host_plan", { name: item.plan || t("unknown"), domain: item.configs?.domain || t("no_domain") })}
               {item.plan?.type === "vps" && item.configs?.os && (
                 <span className="block text-sm text-gray-500">OS: {item.configs.os}</span>
               )}
