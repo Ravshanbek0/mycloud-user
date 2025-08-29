@@ -316,20 +316,13 @@ export default function SignIn() {
 
   const handleSubmit = async () => {
     const validationError = validateInputs();
-    if (validationError) {
-      toast.error(validationError, { position: "top-right", autoClose: 5000 });
-      return;
-    }
-
     try {
       if (showForgotPasswordModal) {
-        await api.post("/auth/change-password/", {
-          current_password: formData.currentPassword,
-          new_password: formData.newPassword,
-          repeat_password: formData.repeatPassword,
+        await api.post("/auth/send-reset-password-email/", {
+          email : formData.email
         });
         toast.success(
-          "Parol muvaffaqiyatli o‘zgartirildi! Iltimos, yangi parol bilan tizimga kiring.",
+          "Iltimos emailingizni tekshiring.",
           {
             position: "top-right",
             autoClose: 5000,
@@ -534,15 +527,7 @@ export default function SignIn() {
   };
 
   const openForgotPasswordModal = () => {
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      toast.error("Parolni o‘zgartirish uchun avval tizimga kiring!", {
-        position: "top-right",
-        autoClose: 5000,
-      });
-      setIsLogin(true);
-      return;
-    }
+    
     setShowForgotPasswordModal(true);
   };
 
@@ -908,7 +893,7 @@ export default function SignIn() {
                   onChange={handleInputChange}
                   name="email"
                 />
-                <InputField
+                {/* <InputField
                   extra="mb-4"
                   label="Joriy parol*"
                   placeholder="Joriy parolni kiriting"
@@ -943,7 +928,7 @@ export default function SignIn() {
                   name="repeatPassword"
                   showPassword={showPassword.repeatPassword}
                   toggleShowPassword={() => toggleShowPassword("repeatPassword")}
-                />
+                /> */}
                 <div className="flex justify-end gap-3">
                   <button
                     type="button"
