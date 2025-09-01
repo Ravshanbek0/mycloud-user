@@ -12,6 +12,47 @@ const Cart = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("click");
+  const [editingItems, setEditingItems] = useState({}); // { [id]: { isEditing: bool, domain: "" } }
+
+  // edit mode yoqish
+  const handleEditClick = (item) => {
+    setEditingItems((prev) => ({
+      ...prev,
+      [item.id]: {
+        isEditing: true,
+        domain: item.configs?.domain || "",
+      },
+    }));
+  };
+
+  // input value o'zgartirish
+  const handleDomainChange = (itemId, value) => {
+    setEditingItems((prev) => ({
+      ...prev,
+      [itemId]: {
+        ...prev[itemId],
+        domain: value,
+      },
+    }));
+  };
+
+  // saqlash
+  const handleSaveChanges = (item) => {
+    const editedDomain = editingItems[item.id]?.domain || "";
+
+    handleUpdateItem(item.id, {
+      plan: item.plan.id,
+      configs: {
+        ...item.configs,
+        domain: editedDomain,
+      },
+    });
+
+    setEditingItems((prev) => ({
+      ...prev,
+      [item.id]: { ...prev[item.id], isEditing: false },
+    }));
+  };
 
   const fetchCartItems = async (url) => {
     setLoading(true);
@@ -35,8 +76,6 @@ const Cart = () => {
       }
 
       const data = await response.json();
-      console.log(data);
-      
       setCartItems(data.results);
       setNextUrl(data.next);
     } catch (err) {
@@ -181,7 +220,6 @@ const Cart = () => {
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            "X-CSRFTOKEN": localStorage.getItem("csrf_token") || "",
           },
         }
       );
@@ -210,11 +248,10 @@ const Cart = () => {
       const response = await fetch(
         `https://api-test.mycloud.uz/shopping-cart-item/auth-user-cart-item/${itemId}/update/`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            "X-CSRFTOKEN": localStorage.getItem("csrf_token") || "",
           },
           body: JSON.stringify(updatedData),
         }
@@ -294,16 +331,16 @@ const Cart = () => {
     );
   }
 
-  // if (error) {
-  //   return (
-  //     <div className="text-center text-red-500">
-  //       {t("error_status")}: {error}
-  //       <button onClick={() => window.location.reload()} className="ml-4 text-blue-600 hover:underline">
-  //         {t("retry")}
-  //       </button>
-  //     </div>
-  //   );
-  // }
+  if (error) {
+    return (
+      <div className="text-center text-red-500">
+        {t("error_status")}: {error}
+        <button onClick={() => window.location.reload()} className="ml-4 text-blue-600 hover:underline">
+          {t("retry")}
+        </button>
+      </div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -355,50 +392,97 @@ const Cart = () => {
           <p className="font-semibold text-center">{t("price")}</p>
           <p className="font-semibold text-right">{t("actions")}</p>
         </div>
-        {cartItems.map((item) => (
-          <div key={item.id} className="mb-4 grid grid-cols-3 gap-4 items-center">
-            <p>
-              {t("host_plan", { name: item.plan || t("unknown"), domain: item.configs?.domain || t("no_domain") })}
-              {item.plan?.type === "vps" && item.configs?.os && (
-                <span className="block text-sm text-gray-500">OS: {item.configs.os}</span>
-              )}
-              {item.plan?.type === "colocation" && item.configs?.addon && (
-                <span className="block text-sm text-gray-500">Addon: {item.configs.addon}</span>
-              )}
-              <span className="block text-sm text-gray-500">
-                {t("duration_period", { count: item.plan?.period_months || 1 })}
-              </span>
-            </p>
-            <p className="text-center">
-              {item.plan?.discounted_monthly_price
-                ? `${item.plan.discounted_monthly_price} ${t("currency_code")}/oy`
-                : t("free")}
-              {item.configs?.addon && (
+        {cartItems.map((item) => {
+          const editState = editingItems[item.id] || { isEditing: false, domain: item.configs?.domain || "" };
+
+          return (
+            <div key={item.id} className="mb-4 grid grid-cols-3 gap-4 items-center">
+              <div>
+                {t("host_plan", {
+                  name: item.plan?.name || t("unknown"),
+                  domain: editState.domain || t("no_domain"),
+                })}
+
+                {item.plan?.type === "vps" && item.configs?.os && (
+                  <span className="block text-sm text-gray-500">OS: {item.configs.os}</span>
+                )}
+
+                {item.plan?.type === "colocation" && item.configs?.addon && (
+                  <span className="block text-sm text-gray-500">
+                    Addon: {item.configs.addon}
+                  </span>
+                )}
+
                 <span className="block text-sm text-gray-500">
-                  + {colocationAddons.find((addon) => addon.name === item.configs.addon)?.monthly_price || 0} {t("currency_code")}
+                  {t("duration_period", { count: item.plan?.period_months || 1 })}
                 </span>
-              )}
-            </p>
-            <div className="text-right">
-              <button
-                onClick={() => handleDeleteItem(item.id)}
-                className="mr-2 text-orange-500 hover:text-orange-600"
-                title={t("remove_item")}
-              >
-                ✖
-              </button>
-              <button
-                onClick={() =>
-                  handleUpdateItem(item.id, { plan: item.plan.id, configs: item.configs || {} })
-                }
-                className="text-blue-500 hover:text-blue-600"
-                title={t("update_item")}
-              >
-                ✎
-              </button>
+
+                {editState.isEditing && (
+                  <input
+                    type="text"
+                    value={editState.domain}
+                    onChange={(e) => handleDomainChange(item.id, e.target.value)}
+                    className="mt-2 w-full rounded border px-2 py-1 text-sm"
+                    placeholder={t("enter_domain")}
+                  />
+                )}
+              </div>
+
+              <p className="text-center">
+                {item.plan?.discounted_monthly_price
+                  ? `${item.plan.discounted_monthly_price} ${t("currency_code")}/oy`
+                  : t("free")}
+              </p>
+
+              <div className="text-right">
+                {!editState.isEditing && (
+                  <button
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="mr-2 text-orange-500 hover:text-orange-600"
+                    title={t("remove_item")}
+                  >
+                    ✖
+                  </button>
+                )}
+
+                {!editState.isEditing ? (
+                  <button
+                    onClick={() => handleEditClick(item)}
+                    className="text-blue-500 hover:text-blue-600"
+                    title={t("update_item")}
+                  >
+                    ✎
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => handleSaveChanges(item)}
+                      className="mr-2 text-green-500 hover:text-green-600"
+                      title={t("save_changes")}
+                    >
+                      ✔
+                    </button>
+                    <button
+                      onClick={() =>
+                        setEditingItems((prev) => ({
+                          ...prev,
+                          [item.id]: { ...prev[item.id], isEditing: false },
+                        }))
+                      }
+                      className="text-red-500 hover:text-gray-600"
+                      title={t("cancel_edit")}
+                    >
+                      ✗
+                    </button>
+                  </>
+                )}
+
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+
+
         {nextUrl && (
           <button
             onClick={handleLoadMore}
