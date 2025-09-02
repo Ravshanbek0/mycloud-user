@@ -375,182 +375,188 @@ const Cart = () => {
   }, 0);
 
   return (
-    <div className="container mx-auto bg-white p-6 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
-      <button
-        onClick={handleBack}
-        className="mb-6 rounded-lg bg-gray-500 px-4 py-2 text-white transition duration-300 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-800"
-      >
-        {t("go_back")}
-      </button>
-      <div className="rounded-lg bg-gray-100 p-6 shadow-lg dark:bg-gray-800">
-        <h1 className="mb-4 text-2xl font-bold">{t("cart")}</h1>
+    <div className="min-h-screen p-6 dark:bg-[#0B1538]">
+      <div className="mx-auto max-w-6xl p-1">
+        <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
+          {t("cart")}
+        </h2>
         <p className="mb-4 text-gray-600 dark:text-gray-400">
           {t("your_shopping_cart")} ({cartItems.length} {t("items")})
         </p>
-        <div className="mb-4 grid grid-cols-3 gap-4 border-b pb-2">
-          <p className="font-semibold">{t("product")}</p>
-          <p className="font-semibold text-center">{t("price")}</p>
-          <p className="font-semibold text-right">{t("actions")}</p>
-        </div>
-        {cartItems.map((item) => {
-          const editState = editingItems[item.id] || { isEditing: false, domain: item.configs?.domain || "" };
 
-          return (
-            <div key={item.id} className="mb-4 grid grid-cols-3 gap-4 items-center">
-              <div>
-                {t("host_plan", {
-                  name: item.plan?.name || t("unknown"),
-                  domain: editState.domain || t("no_domain"),
-                })}
-
-                {item.plan?.type === "vps" && item.configs?.os && (
-                  <span className="block text-sm text-gray-500">OS: {item.configs.os}</span>
-                )}
-
-                {item.plan?.type === "colocation" && item.configs?.addon && (
-                  <span className="block text-sm text-gray-500">
-                    Addon: {item.configs.addon}
-                  </span>
-                )}
-
-                <span className="block text-sm text-gray-500">
-                  {t("duration_period", { count: item.plan?.period_months || 1 })}
-                </span>
-
-                {editState.isEditing && (
-                  <input
-                    type="text"
-                    value={editState.domain}
-                    onChange={(e) => handleDomainChange(item.id, e.target.value)}
-                    className="mt-2 w-full rounded border px-2 py-1 text-sm"
-                    placeholder={t("enter_domain")}
-                  />
-                )}
-              </div>
-
-              <p className="text-center">
-                {item.plan?.discounted_monthly_price
-                  ? `${item.plan.discounted_monthly_price} ${t("currency_code")}/oy`
-                  : t("free")}
-              </p>
-
-              <div className="text-right">
-                {!editState.isEditing && (
-                  <button
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="mr-2 text-orange-500 hover:text-orange-600"
-                    title={t("remove_item")}
-                  >
-                    ✖
-                  </button>
-                )}
-
-                {!editState.isEditing ? (
-                  <button
-                    onClick={() => handleEditClick(item)}
-                    className="text-blue-500 hover:text-blue-600"
-                    title={t("update_item")}
-                  >
-                    ✎
-                  </button>
-                ) : (
-                  <>
-                    <button
-                      onClick={() => handleSaveChanges(item)}
-                      className="mr-2 text-green-500 hover:text-green-600"
-                      title={t("save_changes")}
-                    >
-                      ✔
-                    </button>
-                    <button
-                      onClick={() =>
-                        setEditingItems((prev) => ({
-                          ...prev,
-                          [item.id]: { ...prev[item.id], isEditing: false },
-                        }))
-                      }
-                      className="text-red-500 hover:text-gray-600"
-                      title={t("cancel_edit")}
-                    >
-                      ✗
-                    </button>
-                  </>
-                )}
-
-              </div>
-            </div>
-          );
-        })}
-
-
-        {nextUrl && (
-          <button
-            onClick={handleLoadMore}
-            className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-            disabled={loading}
-          >
-            {t("load_more")}
-          </button>
-        )}
-        <div className="mb-4 flex justify-between">
-          <p>{t("have_coupon_code")}</p>
-          <p className="text-orange-500 cursor-pointer hover:underline">{t("apply_coupon")}</p>
-        </div>
-        <div className="mb-4 flex justify-between">
-          <p className="font-semibold">{t("total")}</p>
-          <p className="font-semibold">
-            {totalPrice > 0 ? `${totalPrice} ${t("currency_code")}` : t("free")}
-          </p>
-        </div>
-        {totalPrice > 0 && (
-          <>
-            <div className="mb-4">
-              <p className="font-semibold">{t("payment_options")}</p>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="click"
-                  checked={selectedPaymentMethod === "click"}
-                  onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                  className="mr-2"
-                />
-                {t("pay_by_click")}
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="payme"
-                  checked={selectedPaymentMethod === "payme"}
-                  onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                  className="mr-2"
-                />
-                {t("pay_by_payme")}
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="bank_card"
-                  checked={selectedPaymentMethod === "bank_card"}
-                  onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                  className="mr-2"
-                />
-                {t("pay_by_bank_card")}
-              </label>
-            </div>
+        <div className="rounded-lg border border-gray-100 bg-white shadow dark:bg-[#111C44]">
+          <div className="flex justify-between items-center px-4 py-3">
+            <h2 className="text-xl font-normal text-gray-800 dark:text-white">{t("cart")}</h2>
             <button
-              onClick={handleProceedToPayment}
-              className="mt-6 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-              disabled={loading}
+              onClick={handleBack}
+              className="rounded-md bg-gray-500 px-4 py-2 text-sm text-white transition hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-800"
             >
-              {loading ? t("processing") : t("checkout")}
+              {t("go_back")}
             </button>
-          </>
-        )}
+          </div>
+
+          <hr className="border-gray-300 dark:border-gray-700" />
+
+          <div className="overflow-x-auto rounded p-4 pt-2">
+            <table className="min-w-full border border-gray-300 text-sm dark:border-gray-700 dark:bg-[#0B1538]">
+              <thead className="text-gray-700 dark:text-gray-300">
+                <tr>
+                  <th className="border p-3 text-left dark:border-gray-700">{t("product")}</th>
+                  <th className="border p-3 text-center dark:border-gray-700">{t("price")}</th>
+                  <th className="border p-3 text-right dark:border-gray-700">{t("actions")}</th>
+                </tr>
+              </thead>
+              <tbody className="text-gray-800 dark:text-gray-200">
+                {cartItems.map((item) => {
+                  const editState = editingItems[item.id] || { isEditing: false, domain: item.configs?.domain || "" };
+
+                  return (
+                    <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                      <td className="border p-3 align-top dark:border-gray-700">
+                        <div className="mb-1 font-medium">
+                          
+                          <strong>{editState.domain || t("no_domain")}</strong>
+                        </div>
+
+
+                        {item.plan?.type === "vps" && item.configs?.os && (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">OS: {item.configs.os}</div>
+                        )}
+
+                        {item.plan?.type === "colocation" && item.configs?.addon && (
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            Addon: {item.configs.addon}
+                          </div>
+                        )}
+
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {t("duration_period", { count: item.plan?.period_months || 1 })}
+                        </div>
+
+                        {editState.isEditing && (
+                          <input
+                            type="text"
+                            value={editState.domain}
+                            onChange={(e) => handleDomainChange(item.id, e.target.value)}
+                            className="mt-2 w-full rounded border px-2 py-1 text-sm dark:bg-gray-800 dark:border-gray-600"
+                            placeholder={t("enter_domain")}
+                          />
+                        )}
+                      </td>
+
+                      <td className="border p-3 text-center align-middle dark:border-gray-700">
+                        {item.plan?.discounted_monthly_price
+                          ? `${item.plan.discounted_monthly_price} ${t("currency_code")}/oy`
+                          : t("free")}
+                      </td>
+
+                      <td className="border p-3 text-right align-middle space-x-2 dark:border-gray-700">
+                        {!editState.isEditing ? (
+                          <>
+                            <button
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="text-orange-500 hover:text-orange-600"
+                              title={t("remove_item")}
+                            >
+                              ✖
+                            </button>
+                            <button
+                              onClick={() => handleEditClick(item)}
+                              className="text-blue-500 hover:text-blue-600"
+                              title={t("update_item")}
+                            >
+                              ✎
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleSaveChanges(item)}
+                              className="text-green-500 hover:text-green-600"
+                              title={t("save_changes")}
+                            >
+                              ✔
+                            </button>
+                            <button
+                              onClick={() =>
+                                setEditingItems((prev) => ({
+                                  ...prev,
+                                  [item.id]: { ...prev[item.id], isEditing: false },
+                                }))
+                              }
+                              className="text-red-500 hover:text-gray-600"
+                              title={t("cancel_edit")}
+                            >
+                              ✗
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+
+            {nextUrl && (
+              <button
+                onClick={handleLoadMore}
+                className="mt-4 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
+                disabled={loading}
+              >
+                {t("load_more")}
+              </button>
+            )}
+          </div>
+
+          <hr className="border-gray-300 dark:border-gray-700" />
+
+          <div className="px-4 py-4 space-y-4">
+            <div className="flex justify-between">
+              <span>{t("have_coupon_code")}</span>
+              <span className="cursor-pointer text-orange-500 hover:underline">{t("apply_coupon")}</span>
+            </div>
+
+            <div className="flex justify-between font-semibold text-lg">
+              <p>{t("total")}</p>
+              <p>{totalPrice > 0 ? totalPrice : t("free")}</p>
+            </div>
+
+            {totalPrice > 0 && (
+              <>
+                <div>
+                  <p className="mb-2 font-semibold">{t("payment_options")}</p>
+                  <div className="space-y-2">
+                    {["click", "payme", "bank_card"].map((method) => (
+                      <label key={method} className="flex items-center">
+                        <input
+                          type="radio"
+                          name="payment"
+                          value={method}
+                          checked={selectedPaymentMethod === method}
+                          onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                          className="mr-2"
+                        />
+                        {t(`pay_by_${method}`)}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleProceedToPayment}
+                  className="mt-6 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
+                  disabled={loading}
+                >
+                  {loading ? t("processing") : t("checkout")}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </div>
+
   );
 };
 

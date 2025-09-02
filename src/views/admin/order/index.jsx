@@ -57,6 +57,8 @@ const Order = () => {
 
         const data = await response.json();
         setServices(data.results || []);
+        console.log(data.results);
+        
       } catch (err) {
         console.error("Error fetching services:", err);
         setError(err.message);
@@ -400,9 +402,9 @@ const Order = () => {
         services.map((service) => (
           <div key={service.id} className="mb-10">
             <h2 className="text-2xl font-bold mb-6 text-gray-700 dark:text-gray-300">{service.name}</h2>
-            <p className="text-sm mb-2"><strong>{t("title")}:</strong> {service.title || t("no_title")}</p>
-            <p className="text-sm mb-2"><strong>{t("description")}:</strong> {service.description || t("no_description")}</p>
-            <p className="text-sm mb-2"><strong>{t("info")}:</strong> {service.info || t("no_info")}</p>
+            <p className="text-sm mb-2"><strong> {service.title || t("no_title")}</strong></p>
+            <p className="text-sm mb-2"><strong>{service.description || t("no_description")}</strong> </p>
+            <p className="text-sm mb-2"><strong>{service.info || t("no_info")}</strong> </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
               {Array.isArray(service.tariffs) && service.tariffs.length > 0 ? (
                 service.tariffs.map((tariff) => (

@@ -21,6 +21,7 @@ import {
   MdShoppingCart,
 } from "react-icons/md";
 import SignIn from "views/auth/SignIn";
+import Resetpassword from "views/auth/Resetpassword";
 
 const routes = [
   {
@@ -105,6 +106,13 @@ const routes = [
     path: "sign-in",
     icon: <MdLock className="h-6 w-6" />,
     component: <SignIn />,
+  },
+  {
+    name: "Reset password",
+    layout: "/auth",
+    path: "reset-password",
+    icon: <MdLock className="h-6 w-6" />,
+    component: <Resetpassword />,
   },
 ];
 

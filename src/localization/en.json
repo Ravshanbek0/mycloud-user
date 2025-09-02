@@ -8,6 +8,7 @@
   "see_documentation": "See Documentation",
   "try_horizon_free": "Try Horizon Free",
   "greeting": "Hello, {{name}}",
+  "free" : "Free",
   "profile_settings": "Profile Settings",
   "newsletter_settings": "Newsletter Settings",
   "logout": "Logout",
