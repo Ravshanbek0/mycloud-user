@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 const api = axios.create({
-  baseURL: "https://api-test.mycloud.uz",
+  baseURL: process.env.REACT_APP_API_URL,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
@@ -328,6 +328,7 @@ export default function SignIn() {
             autoClose: 5000,
           }
         );
+        localStorage.setItem("reset-email",formData.email)
         setShowForgotPasswordModal(false);
         setFormData({
           ...formData,

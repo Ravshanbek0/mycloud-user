@@ -17,11 +17,11 @@ const Resetpassword = () => {
   const [isDarkMode, setIsDarkMode] = useState(
     document.body.classList.contains("dark")
   );
-  useEffect(()=>{
+  useEffect(() => {
     if (!uid && !token) {
-        navigate('/auth/sign-in');
+      navigate('/auth/sign-in');
     }
-  },[uid,token])
+  }, [uid, token])
   useEffect(() => {
     const observer = new MutationObserver(() => {
       const dark = document.body.classList.contains("dark");
@@ -63,7 +63,7 @@ const Resetpassword = () => {
       return;
     }
     if (!uid && !token) {
-        navigate('/auth/sign-in');
+      navigate('/auth/sign-in');
     }
     setError("");
     setIsSubmitting(true);
@@ -88,7 +88,7 @@ const Resetpassword = () => {
       } else {
         setApiMessage("Password reset successfully!");
         // Bu yerda hohlagan yo'nalishga o'tish mumkin masalan:
-        navigate('/auth/sign-in');
+        getToken()
       }
     } catch (error) {
       setApiMessage("Network error, please try again.");
@@ -96,17 +96,43 @@ const Resetpassword = () => {
       setIsSubmitting(false);
     }
   };
+  async function getToken(params) {
+    if (localStorage.getItem("reset-email")) {
+      try {
+        const response = await fetch(`${apiUrl}auth/token/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(
+            {
+              "email": localStorage.getItem("reset-email"),
+              "password": inputValue
+            }
+          ),
+          redirect: "follow"
+        })
 
+        const result = await response.json()
+        if (response.ok) {
+          localStorage.removeItem("reset-email")
+          localStorage.setItem("access_token", result.data.access);
+          localStorage.setItem("refresh_token", result.data.refresh);
+          navigate("/admin/default")
+        }
+      } catch (error) {
+        console.error(error)
+      }
+    }
+  }
   return (
     <div
-      className={`${
-        isDarkMode ? "bg-gray-900" : "bg-gray-100"
-      } min-h-screen flex items-center justify-center px-4 transition-colors duration-300`}
+      className={`${isDarkMode ? "bg-gray-900" : "bg-gray-100"
+        } min-h-screen flex items-center justify-center px-4 transition-colors duration-300`}
     >
       <div
-        className={`${
-          isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
-        } w-full max-w-md shadow-xl rounded-xl p-8 transition-colors duration-300`}
+        className={`${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
+          } w-full max-w-md shadow-xl rounded-xl p-8 transition-colors duration-300`}
       >
         <h2 className="text-2xl font-semibold mb-6 text-center">Reset Password</h2>
 
@@ -122,11 +148,10 @@ const Resetpassword = () => {
               placeholder="Enter new password"
               value={inputValue}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 pr-12 border rounded-lg shadow-sm focus:outline-none transition ${
-                isDarkMode
-                  ? "bg-gray-700 text-white border-gray-600 focus:ring-2 focus:ring-blue-400"
-                  : "bg-white text-gray-900 border-gray-300 focus:ring-2 focus:ring-blue-500"
-              }`}
+              className={`w-full px-4 py-3 pr-12 border rounded-lg shadow-sm focus:outline-none transition ${isDarkMode
+                ? "bg-gray-700 text-white border-gray-600 focus:ring-2 focus:ring-blue-400"
+                : "bg-white text-gray-900 border-gray-300 focus:ring-2 focus:ring-blue-500"
+                }`}
             />
             <button
               type="button"
@@ -155,11 +180,10 @@ const Resetpassword = () => {
           <button
             type="submit"
             disabled={!!error || isSubmitting}
-            className={`w-full font-semibold py-3 rounded-lg transition ${
-              !!error || isSubmitting
-                ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }`}
+            className={`w-full font-semibold py-3 rounded-lg transition ${!!error || isSubmitting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700 text-white"
+              }`}
           >
             {isSubmitting ? "Please wait..." : "Reset Password"}
           </button>

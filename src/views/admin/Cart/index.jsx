@@ -13,6 +13,7 @@ const Cart = () => {
   const [error, setError] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("click");
   const [editingItems, setEditingItems] = useState({}); // { [id]: { isEditing: bool, domain: "" } }
+  const apiUrl = process.env.REACT_APP_API_URL;
 
   // edit mode yoqish
   const handleEditClick = (item) => {
@@ -63,7 +64,7 @@ const Cart = () => {
         throw new Error(t("auth_issue"));
       }
 
-      const response = await fetch("https://api-test.mycloud.uz/shopping-cart-item/auth-user-cart-items/list/", {
+      const response = await fetch(`${apiUrl}shopping-cart-item/auth-user-cart-items/list/`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -94,7 +95,7 @@ const Cart = () => {
       }
 
       const langPrefix = localStorage.getItem("i18n_language") || "uz";
-      const apiUrl = `https://api-test.mycloud.uz/${langPrefix}/user-side-services/active-colocation-addons/?limit=10&offset=0`;
+      const apiUrl = `${apiUrl}${langPrefix}/user-side-services/active-colocation-addons/?limit=10&offset=0`;
 
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -123,7 +124,7 @@ const Cart = () => {
       }
 
       const langPrefix = localStorage.getItem("i18n_language") || "uz";
-      const apiUrl = `https://api-test.mycloud.uz/${langPrefix}/user-side-services/operating-systems/?limit=10&offset=0`;
+      const apiUrl = `${apiUrl}${langPrefix}/user-side-services/operating-systems/?limit=10&offset=0`;
 
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -156,7 +157,7 @@ const Cart = () => {
 
         // Savatni faqat kerak bo‘lganda yaratamiz (agar mavjud bo‘lmasa)
         const checkCartResponse = await fetch(
-          "https://api-test.mycloud.uz/shopping-cart/auth-user-cart/",
+          `${apiUrl}shopping-cart/auth-user-cart/`,
           {
             method: "GET",
             headers: {
@@ -169,7 +170,7 @@ const Cart = () => {
         if (checkCartResponse.status === 404 || checkCartResponse.status === 400) {
           // Savat mavjud emas bo‘lsa, yaratamiz
           const createCartResponse = await fetch(
-            "https://api-test.mycloud.uz/shopping-cart/auth-user-cart/create/",
+            `${apiUrl}shopping-cart/auth-user-cart/create/`,
             {
               method: "POST",
               headers: {
@@ -214,7 +215,7 @@ const Cart = () => {
       }
 
       const response = await fetch(
-        `https://api-test.mycloud.uz/shopping-cart-item/auth-user-cart-item/${itemId}/delete/`,
+        `${apiUrl}shopping-cart-item/auth-user-cart-item/${itemId}/delete/`,
         {
           method: "DELETE",
           headers: {
@@ -246,7 +247,7 @@ const Cart = () => {
       }
 
       const response = await fetch(
-        `https://api-test.mycloud.uz/shopping-cart-item/auth-user-cart-item/${itemId}/update/`,
+        `${apiUrl}shopping-cart-item/auth-user-cart-item/${itemId}/update/`,
         {
           method: "PATCH",
           headers: {
@@ -294,7 +295,7 @@ const Cart = () => {
       };
 
       const response = await fetch(
-        "https://api-test.mycloud.uz/shopping-cart/auth-user-cart/confirm/",
+        `${apiUrl}shopping-cart/auth-user-cart/confirm/`,
         {
           method: "POST",
           headers: {

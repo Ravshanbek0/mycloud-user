@@ -5,7 +5,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useTranslation } from "react-i18next";
 
 const api = axios.create({
-  baseURL: "https://api-test.mycloud.uz",
+  baseURL: process.env.REACT_APP_API_URL,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",

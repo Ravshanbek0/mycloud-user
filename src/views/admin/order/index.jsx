@@ -16,6 +16,7 @@ const Order = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { orderId } = useParams();
+  const apiUrlenv = process.env.REACT_APP_API_URL;
 
   useEffect(() => {
     if (orderId) {
@@ -40,8 +41,8 @@ const Order = () => {
           throw new Error(t("auth_issue"));
         }
 
-        const langPrefix = i18n.language === "uz" ? "" : `/${i18n.language}`;
-        const apiUrl = `https://api-test.mycloud.uz${langPrefix}/user-side-services/services-with-tariff-names/?limit=10&offset=0`;
+        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}`;
+        const apiUrl = `${apiUrlenv}${langPrefix}user-side-services/services-with-tariff-names/?limit=10&offset=0`;
 
         const response = await fetch(apiUrl, {
           method: "GET",
@@ -74,8 +75,8 @@ const Order = () => {
           throw new Error(t("auth_issue"));
         }
 
-        const langPrefix = i18n.language === "uz" ? "" : `/${i18n.language}`;
-        const apiUrl = `https://api-test.mycloud.uz${langPrefix}/user-side-services/active-colocation-addons/?limit=10&offset=0`;
+        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}`;
+        const apiUrl = `${apiUrlenv}${langPrefix}user-side-services/active-colocation-addons/?limit=10&offset=0`;
 
         const response = await fetch(apiUrl, {
           method: "GET",
@@ -103,8 +104,8 @@ const Order = () => {
           throw new Error(t("auth_issue"));
         }
 
-        const langPrefix = i18n.language === "uz" ? "" : `/${i18n.language}`;
-        const apiUrl = `https://api-test.mycloud.uz${langPrefix}/user-side-services/operating-systems/?limit=10&offset=0`;
+        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}`;
+        const apiUrl = `${apiUrlenv}${langPrefix}user-side-services/operating-systems/?limit=10&offset=0`;
 
         const response = await fetch(apiUrl, {
           method: "GET",
@@ -142,8 +143,8 @@ const Order = () => {
           throw new Error(t("auth_issue"));
         }
 
-        const langPrefix = i18n.language === "uz" ? "" : `/${i18n.language}`;
-        const apiUrl = `https://api-test.mycloud.uz${langPrefix}/user-side-services/tariff-with-plans-by-tariff-name/${encodeURIComponent(selectedTariff)}/`;
+        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}`;
+        const apiUrl = `${apiUrlenv}${langPrefix}user-side-services/tariff-with-plans-by-tariff-name/${encodeURIComponent(selectedTariff)}/`;
 
         const response = await fetch(apiUrl, {
           method: "GET",
@@ -209,7 +210,7 @@ const Order = () => {
           };
           
           addToCartPromises.push(
-            fetch("https://api-test.mycloud.uz/shopping-cart-item/auth-user-cart-item/create/", {
+            fetch(`${apiUrlenv}shopping-cart-item/auth-user-cart-item/create/`, {
               method: "POST",
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -231,7 +232,7 @@ const Order = () => {
         }
 
         addToCartPromises.push(
-          fetch("https://api-test.mycloud.uz/shopping-cart-item/auth-user-cart-item/create/", {
+          fetch(`${apiUrlenv}shopping-cart-item/auth-user-cart-item/create/`, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${token}`,
