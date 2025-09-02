@@ -116,8 +116,8 @@ const Resetpassword = () => {
         const result = await response.json()
         if (response.ok) {
           localStorage.removeItem("reset-email")
-          localStorage.setItem("access_token", result.data.access);
-          localStorage.setItem("refresh_token", result.data.refresh);
+          localStorage.setItem("access_token", result.access);
+          localStorage.setItem("refresh_token", result.refresh);
           navigate("/admin/default")
         }
       } catch (error) {
