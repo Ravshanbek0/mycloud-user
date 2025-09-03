@@ -200,6 +200,9 @@
   "actions": "Amallar",
   "remove_item": "Elementni o'chirish",
   "apply_coupon": "Kuponni qo'llash",
+  "add_to_cart":"Savatga qo'shish",
+  "enter_domain_name":"Domen nomi",
+  "enter_extension":"Kengaytma",
 
   "checkout": "To'lovga o'tish",
   "cart_retrieval_error": "Savatcha ma'lumotlarini olishda xato",

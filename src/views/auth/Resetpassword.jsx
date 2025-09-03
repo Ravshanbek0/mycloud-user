@@ -114,8 +114,6 @@ const Resetpassword = () => {
         })
 
         const result = await response.json()
-        console.log(result);
-        
         if (response.ok) {
           localStorage.removeItem("reset-email")
           localStorage.setItem("access_token", result.access);

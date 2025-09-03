@@ -41,7 +41,7 @@ const Order = () => {
           throw new Error(t("auth_issue"));
         }
 
-        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}`;
+        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}/`;
         const apiUrl = `${apiUrlenv}${langPrefix}user-side-services/services-with-tariff-names/?limit=10&offset=0`;
 
         const response = await fetch(apiUrl, {
@@ -75,7 +75,7 @@ const Order = () => {
           throw new Error(t("auth_issue"));
         }
 
-        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}`;
+        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}/`;
         const apiUrl = `${apiUrlenv}${langPrefix}user-side-services/active-colocation-addons/?limit=10&offset=0`;
 
         const response = await fetch(apiUrl, {
@@ -104,7 +104,7 @@ const Order = () => {
           throw new Error(t("auth_issue"));
         }
 
-        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}`;
+        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}/`;
         const apiUrl = `${apiUrlenv}${langPrefix}user-side-services/operating-systems/?limit=10&offset=0`;
 
         const response = await fetch(apiUrl, {
@@ -143,7 +143,7 @@ const Order = () => {
           throw new Error(t("auth_issue"));
         }
 
-        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}`;
+        const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}/`;
         const apiUrl = `${apiUrlenv}${langPrefix}user-side-services/tariff-with-plans-by-tariff-name/${encodeURIComponent(selectedTariff)}/`;
 
         const response = await fetch(apiUrl, {
