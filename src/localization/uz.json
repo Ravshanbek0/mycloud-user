@@ -31,7 +31,6 @@
   "no_services": "Xizmatlar mavjud emas",
   "no_access_token": "Access token topilmadi",
   "fetch_error": "Ma'lumotlarni olishda xatolik yuz berdi",
-
   "Payment History": "To‘lovlar tarixi",
   "your account balance": "Bu yerda hisob balansingizni boshqarishingiz va kuzatishingiz mumkin.",
   "Description": "Tavsif",
@@ -42,7 +41,6 @@
   "UZS": "so‘m",
   "Top up your balance": "Balansingizni to‘ldiring",
   "Add": "Qo‘shish",
-
   "title": "Foydalanuvchi Profili",
   "profile_section": "Profil Ma'lumotlari",
   "balance_section": "Balans Ma'lumotlari",
@@ -149,17 +147,17 @@
   "ACTIVE UNTIL": "FAOLLIGI MUDDATI",
   "STATUS": "HOLATI",
   "List is empty": "Ro‘yxat bo‘sh",
-  "invoices" : "Hisob-varoq faktura",
-  "order" : "Buyurtma",
-  "profile":"Profil",
-  "dashboard":"Boshqaruv paneli",
-  "payments":"To'lovlar",
-  "support":"Qo'llab-quvvatlash",
-  "support_help":"Qo'llab-quvvatlash yordami",
-  "announcements":"E'lonlar",
-  "knowledge":"Bilim",
-  "services":"Xizmatlar",
-
+  "invoices": "Hisob-varoq faktura",
+  "order": "Buyurtma",
+  "profile": "Profil",
+  "dashboard": "Boshqaruv paneli",
+  "payments": "To'lovlar",
+  "support": "Qo'llab-quvvatlash",
+  "support_help": "Qo'llab-quvvatlash yordami",
+  "announcements": "E'lonlar",
+  "knowledge": "Bilim",
+  "services": "Xizmatlar",
+  "load_more": "Yana yuklash",
   
   "Главная": "Bosh sahifa",
   "Заказы": "Buyurtmalar",
@@ -175,18 +173,14 @@
   "Список пуст": "Ro‘yxat bo‘sh",
   "Последние электронные письма": "Oxirgi elektron xatlar",
   "неделя тому назад": "bir hafta oldin",
-
   "update_button": "Yangilash",
   "retry": "Qayta urinish",
-
   "no_properties": "Xususiyatlar mavjud emas",
-
   "domain_required": "Hosting tariflari uchun domen kiritish majburiy",
   "no_domain": "Domen kiritilmagan",
   "next": "Keyingi",
   "processing": "Qayta ishlash...",
   "missing_details": "Ma'lumotlar to'liq emas. Iltimos, reja tanlang.",
-
   "cart_creation_error": "Savatcha yaratishda xato",
   "cart_clear_error": "Savatchani tozalashda xato",
   "cart_item_creation_error": "Savatcha elementini qo'shishda xato",
@@ -200,12 +194,10 @@
   "actions": "Amallar",
   "remove_item": "Elementni o'chirish",
   "apply_coupon": "Kuponni qo'llash",
-  "add_to_cart":"Savatga qo'shish",
-  "enter_domain_name":"Domen nomi",
-  "enter_extension":"Kengaytma",
-
+  "add_to_cart": "Savatga qo'shish",
+  "enter_domain_name": "Domen nomi",
+  "enter_extension": "Kengaytma",
   "checkout": "To'lovga o'tish",
   "cart_retrieval_error": "Savatcha ma'lumotlarini olishda xato",
   "cart_item_delete_error": "Savatcha elementini o'chirishda xato"
-  
 }

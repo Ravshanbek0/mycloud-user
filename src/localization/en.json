@@ -203,5 +203,6 @@
   "Список пуст": "List is empty",
   "Последние электронные письма": "Latest emails",
   "неделя тому назад": "a week ago",
-  "update_button": "Update"
+  "update_button": "Update",
+  "load_more": "Load more"
 }

@@ -96,35 +96,36 @@ const Resetpassword = () => {
       setIsSubmitting(false);
     }
   };
-  async function getToken(params) {
-    if (localStorage.getItem("reset-email")) {
-      try {
-        const response = await fetch(`${apiUrl}auth/token/`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(
-            {
-              "email": localStorage.getItem("reset-email"),
-              "password": inputValue
-            }
-          ),
-          redirect: "follow"
-        })
+  async function getToken(password) {
+    const email = localStorage.getItem("reset-email");
+    if (!email) return;
 
-        const result = await response.json()
-        if (response.ok) {
-          localStorage.removeItem("reset-email")
-          localStorage.setItem("access_token", result.access);
-          localStorage.setItem("refresh_token", result.refresh);
-          navigate("/admin/default")
-        }
-      } catch (error) {
-        console.error(error)
+    try {
+      const response = await fetch(`${apiUrl}auth/token/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password }),
+        redirect: "follow"
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        localStorage.removeItem("reset-email");
+        localStorage.setItem("access_token", result.access);
+        localStorage.setItem("refresh_token", result.refresh);
+        navigate("/admin/default");
+      } else {
+        const errorData = await response.json();
+        console.error("Login failed:", errorData);
+        // masalan, toast.error(errorData.detail || "Login failed")
       }
+    } catch (error) {
+      console.error("Network error:", error);
     }
   }
+
   return (
     <div
       className={`${isDarkMode ? "bg-gray-900" : "bg-gray-100"

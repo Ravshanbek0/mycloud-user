@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [nextUrl, setNextUrl] = useState(null);
@@ -13,7 +13,8 @@ const Cart = () => {
   const [error, setError] = useState(null);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("click");
   const [editingItems, setEditingItems] = useState({}); // { [id]: { isEditing: bool, domain: "" } }
-  const apiUrl = process.env.REACT_APP_API_URL;
+  const apiUrlEnv = process.env.REACT_APP_API_URL;
+
 
   // edit mode yoqish
   const handleEditClick = (item) => {
@@ -64,7 +65,7 @@ const Cart = () => {
         throw new Error(t("auth_issue"));
       }
 
-      const response = await fetch(`${apiUrl}shopping-cart-item/auth-user-cart-items/list/`, {
+      const response = await fetch(`${apiUrlEnv}shopping-cart-item/auth-user-cart-items/list/`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -77,6 +78,7 @@ const Cart = () => {
       }
 
       const data = await response.json();
+      console.log(data.results)
       setCartItems(data.results);
       setNextUrl(data.next);
     } catch (err) {
@@ -94,8 +96,8 @@ const Cart = () => {
         throw new Error(t("auth_issue"));
       }
 
-      const langPrefix = localStorage.getItem("i18n_language") || "uz";
-      const apiUrl = `${apiUrl}${langPrefix}/user-side-services/active-colocation-addons/?limit=10&offset=0`;
+      const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}/`
+      const apiUrl = `${apiUrlEnv}${langPrefix}user-side-services/active-colocation-addons/?limit=10&offset=0`;
 
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -123,8 +125,8 @@ const Cart = () => {
         throw new Error(t("auth_issue"));
       }
 
-      const langPrefix = localStorage.getItem("i18n_language") || "uz";
-      const apiUrl = `${apiUrl}${langPrefix}/user-side-services/operating-systems/?limit=10&offset=0`;
+      const langPrefix = i18n.language === "uz" ? "" : `${i18n.language}/`
+      const apiUrl = `${apiUrlEnv}${langPrefix}user-side-services/operating-systems/?limit=10&offset=0`;
 
       const response = await fetch(apiUrl, {
         method: "GET",
@@ -157,7 +159,7 @@ const Cart = () => {
 
         // Savatni faqat kerak bo‘lganda yaratamiz (agar mavjud bo‘lmasa)
         const checkCartResponse = await fetch(
-          `${apiUrl}shopping-cart/auth-user-cart/`,
+          `${apiUrlEnv}shopping-cart/auth-user-cart/`,
           {
             method: "GET",
             headers: {
@@ -170,7 +172,7 @@ const Cart = () => {
         if (checkCartResponse.status === 404 || checkCartResponse.status === 400) {
           // Savat mavjud emas bo‘lsa, yaratamiz
           const createCartResponse = await fetch(
-            `${apiUrl}shopping-cart/auth-user-cart/create/`,
+            `${apiUrlEnv}shopping-cart/auth-user-cart/create/`,
             {
               method: "POST",
               headers: {
@@ -215,7 +217,7 @@ const Cart = () => {
       }
 
       const response = await fetch(
-        `${apiUrl}shopping-cart-item/auth-user-cart-item/${itemId}/delete/`,
+        `${apiUrlEnv}shopping-cart-item/auth-user-cart-item/${itemId}/delete/`,
         {
           method: "DELETE",
           headers: {
@@ -247,7 +249,7 @@ const Cart = () => {
       }
 
       const response = await fetch(
-        `${apiUrl}shopping-cart-item/auth-user-cart-item/${itemId}/update/`,
+        `${apiUrlEnv}shopping-cart-item/auth-user-cart-item/${itemId}/update/`,
         {
           method: "PATCH",
           headers: {
@@ -295,7 +297,7 @@ const Cart = () => {
       };
 
       const response = await fetch(
-        `${apiUrl}shopping-cart/auth-user-cart/confirm/`,
+        `${apiUrlEnv}shopping-cart/auth-user-cart/confirm/`,
         {
           method: "POST",
           headers: {
@@ -409,26 +411,25 @@ const Cart = () => {
               </thead>
               <tbody className="text-gray-800 dark:text-gray-200">
                 {cartItems.map((item) => {
-                  const editState = editingItems[item.id] || { isEditing: false, domain: item.configs?.domain || "" };
+                  const editState =
+                    editingItems[item.id] || { isEditing: false, domain: item.configs?.domain || "" };
 
                   return (
                     <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td className="border p-3 align-top dark:border-gray-700">
                         <div className="mb-1 font-medium">
-                          
-                          <strong>{editState.domain || t("no_domain")}</strong>
+                          {/* configs ichidagi barcha key-value juftliklarini chiqaramiz */}
+                          {item.configs && Object.keys(item.configs).length > 0 ? (
+                            Object.entries(item.configs).map(([key, value]) => (
+                              <div key={key}>
+                                <strong>{key}: </strong>
+                                {value}
+                              </div>
+                            ))
+                          ) : (
+                            <strong>{t("no_config")}</strong>
+                          )}
                         </div>
-
-
-                        {item.plan?.type === "vps" && item.configs?.os && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">OS: {item.configs.os}</div>
-                        )}
-
-                        {item.plan?.type === "colocation" && item.configs?.addon && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
-                            Addon: {item.configs.addon}
-                          </div>
-                        )}
 
                         <div className="text-sm text-gray-500 dark:text-gray-400">
                           {t("duration_period", { count: item.plan?.period_months || 1 })}
@@ -488,7 +489,7 @@ const Cart = () => {
                               className="text-red-500 hover:text-gray-600"
                               title={t("cancel_edit")}
                             >
-                              ✗
+                              ✖
                             </button>
                           </>
                         )}
@@ -497,6 +498,7 @@ const Cart = () => {
                   );
                 })}
               </tbody>
+
             </table>
 
             {nextUrl && (

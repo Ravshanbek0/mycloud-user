@@ -183,66 +183,75 @@ const Order = () => {
   }, [selectedTariff, i18n.language, t, operatingSystems]);
 
   const handleAddToCart = async () => {
-    if (!selectedTariff || !tariffDetails || !selectedPlan || !selectedPlan.id) {
+    if (!selectedTariff || !tariffDetails || !selectedPlan?.id) {
       setError(t("missing_details"));
       return;
     }
-
+  
+    // Hosting uchun domen majburiy
     if (tariffDetails.name.toLowerCase().includes("host") && !domainConfig.domain) {
       setError(t("domain_required"));
       return;
     }
-
+  
+    // VPS uchun OS majburiy
+    if (tariffDetails.name.toLowerCase().includes("vps") && !selectedOS) {
+      setError(t("os_required"));
+      return;
+    }
+  
     setLoading(true);
     try {
       const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error(t("auth_issue"));
-      }
-
-      // Colocation uchun barcha addonlarni qo‘shish
+      if (!token) throw new Error(t("auth_issue"));
+  
       const addToCartPromises = [];
-      if (tariffDetails.name.toLowerCase().includes("colocation") && colocationAddons.length > 0) {
+  
+      // 🟢 Colocation: har bir addon alohida qo'shiladi
+      if (tariffDetails.name.toLowerCase().includes("colocation")) {
         colocationAddons.forEach((addon) => {
           const payload = {
             plan: selectedPlan.id,
-            configs: { addon: addon.name },
+            cart: 1,
+            configs: { addon: addon.name }, // hech qachon bo'sh emas
           };
-          
-          addToCartPromises.push(
-            fetch(`${apiUrlenv}shopping-cart-item/auth-user-cart-item/create/`, {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify(payload),
-            })
-          );
-        });
-      } else {
-        const payload = {
-          plan: selectedPlan.id,
-          cart: 1,
-        };
-        if (tariffDetails.name.toLowerCase().includes("host") && domainConfig) {
-          payload.configs = { domain: `${domainConfig.domain}${domainConfig.extension || ""}` };
-        } else if (tariffDetails.name.toLowerCase().includes("vps") && selectedOS) {
-          payload.configs = { os: selectedOS.name };
-        }
-
-        addToCartPromises.push(
-          fetch(`${apiUrlenv}shopping-cart-item/auth-user-cart-item/create/`, {
+          addToCartPromises.push(fetch(`${apiUrlenv}shopping-cart-item/auth-user-cart-item/create/`, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify(payload),
-          })
-        );
+          }));
+        });
+      } else {
+        // 🟢 Qolgan xizmatlar uchun configs doim to'ldiriladi
+        const payload = {
+          plan: selectedPlan.id,
+          cart: 1,
+          configs: {}, // bo'sh emas, to'ldiramiz
+        };
+  
+        if (tariffDetails.name.toLowerCase().includes("host")) {
+          payload.configs = { domain: `${domainConfig.domain}${domainConfig.extension || ""}` };
+        } else if (tariffDetails.name.toLowerCase().includes("vps")) {
+          payload.configs = { os: selectedOS.name };
+        } else {
+          // boshqa xizmatlar (masalan video registrator)
+          payload.configs = { type: tariffDetails.name };
+        }
+  
+        addToCartPromises.push(fetch(`${apiUrlenv}shopping-cart-item/auth-user-cart-item/create/`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        }));
       }
-
+  
+      // 🟢 Javoblarni tekshirish
       const responses = await Promise.all(addToCartPromises);
       for (const response of responses) {
         if (!response.ok) {
@@ -250,7 +259,7 @@ const Order = () => {
           throw new Error(errorData.detail || errorData.plan?.[0] || t("cart_item_creation_error"));
         }
       }
-
+  
       navigate("/admin/cart");
     } catch (err) {
       console.error("Error adding to cart:", err);
@@ -259,6 +268,7 @@ const Order = () => {
       setLoading(false);
     }
   };
+  
 
   const handleBack = () => {
     setSelectedTariff(null);
