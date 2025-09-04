@@ -17,23 +17,28 @@ const Resetpassword = () => {
   const [isDarkMode, setIsDarkMode] = useState(
     document.body.classList.contains("dark")
   );
+
   useEffect(() => {
-    if (!uid && !token) {
-      navigate('/auth/sign-in');
+    if (!uid || !token) {
+      navigate("/auth/sign-in");
     }
-  }, [uid, token])
+  }, [uid, token, navigate]); // ✅ navigate qo‘shildi
+
   useEffect(() => {
     const observer = new MutationObserver(() => {
       const dark = document.body.classList.contains("dark");
       setIsDarkMode(dark);
     });
 
-    observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
 
     return () => observer.disconnect(); // Cleanup
   }, []);
 
-  // Validatsiya funksiyasi
+  // ✅ Validatsiya funksiyasi
   const validatePassword = (password) => {
     if (!password) {
       return "Password is required";
@@ -62,9 +67,11 @@ const Resetpassword = () => {
       setError(validationError);
       return;
     }
-    if (!uid && !token) {
-      navigate('/auth/sign-in');
+    if (!uid || !token) {
+      navigate("/auth/sign-in");
+      return;
     }
+
     setError("");
     setIsSubmitting(true);
     setApiMessage("");
@@ -83,12 +90,11 @@ const Resetpassword = () => {
       const result = await response.json();
 
       if (!response.ok) {
-        // Agar status code 2xx bo'lmasa
         setApiMessage(result.message || "Something went wrong");
       } else {
         setApiMessage("Password reset successfully!");
-        // Bu yerda hohlagan yo'nalishga o'tish mumkin masalan:
-        getToken()
+        // ✅ parolni parametr sifatida yuborish kerak
+        getToken(inputValue);
       }
     } catch (error) {
       setApiMessage("Network error, please try again.");
@@ -96,6 +102,8 @@ const Resetpassword = () => {
       setIsSubmitting(false);
     }
   };
+
+  // ✅ Parol parametr bilan ishlaydigan login funksiyasi
   async function getToken(password) {
     const email = localStorage.getItem("reset-email");
     if (!email) return;
@@ -104,10 +112,10 @@ const Resetpassword = () => {
       const response = await fetch(`${apiUrl}auth/token/`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-        redirect: "follow"
+        redirect: "follow",
       });
 
       if (response.ok) {
@@ -119,7 +127,6 @@ const Resetpassword = () => {
       } else {
         const errorData = await response.json();
         console.error("Login failed:", errorData);
-        // masalan, toast.error(errorData.detail || "Login failed")
       }
     } catch (error) {
       console.error("Network error:", error);
@@ -135,11 +142,16 @@ const Resetpassword = () => {
         className={`${isDarkMode ? "bg-gray-800 text-white" : "bg-white text-gray-800"
           } w-full max-w-md shadow-xl rounded-xl p-8 transition-colors duration-300`}
       >
-        <h2 className="text-2xl font-semibold mb-6 text-center">Reset Password</h2>
+        <h2 className="text-2xl font-semibold mb-6 text-center">
+          Reset Password
+        </h2>
 
         <form className="space-y-5" onSubmit={resetPassword} noValidate>
           <div className="relative">
-            <label htmlFor="newPassword" className="block text-sm font-medium mb-1">
+            <label
+              htmlFor="newPassword"
+              className="block text-sm font-medium mb-1"
+            >
               New Password
             </label>
             <input
@@ -150,8 +162,8 @@ const Resetpassword = () => {
               value={inputValue}
               onChange={handleInputChange}
               className={`w-full px-4 py-3 pr-12 border rounded-lg shadow-sm focus:outline-none transition ${isDarkMode
-                ? "bg-gray-700 text-white border-gray-600 focus:ring-2 focus:ring-blue-400"
-                : "bg-white text-gray-900 border-gray-300 focus:ring-2 focus:ring-blue-500"
+                  ? "bg-gray-700 text-white border-gray-600 focus:ring-2 focus:ring-blue-400"
+                  : "bg-white text-gray-900 border-gray-300 focus:ring-2 focus:ring-blue-500"
                 }`}
             />
             <button
@@ -160,20 +172,23 @@ const Resetpassword = () => {
               className="absolute right-3 top-[38px] text-gray-500 hover:text-gray-700"
               tabIndex={-1}
             >
-              {showPassword ? <FaEyeSlash className="w-5 h-5" /> : <FaEye className="w-5 h-5" />}
+              {showPassword ? (
+                <FaEyeSlash className="w-5 h-5" />
+              ) : (
+                <FaEye className="w-5 h-5" />
+              )}
             </button>
           </div>
 
-          {/* Error message */}
-          {error && (
-            <p className="text-red-500 text-sm mt-1">
-              {error}
-            </p>
-          )}
+          {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
 
-          {/* API message */}
           {apiMessage && (
-            <p className={`text-sm mt-1 ${apiMessage.includes("success") ? "text-green-500" : "text-red-500"}`}>
+            <p
+              className={`text-sm mt-1 ${apiMessage.includes("success")
+                  ? "text-green-500"
+                  : "text-red-500"
+                }`}
+            >
               {apiMessage}
             </p>
           )}
@@ -182,8 +197,8 @@ const Resetpassword = () => {
             type="submit"
             disabled={!!error || isSubmitting}
             className={`w-full font-semibold py-3 rounded-lg transition ${!!error || isSubmitting
-              ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700 text-white"
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
               }`}
           >
             {isSubmitting ? "Please wait..." : "Reset Password"}
