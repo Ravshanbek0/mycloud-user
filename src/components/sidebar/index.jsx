@@ -3,7 +3,7 @@ import { useState } from "react";
 import { HiX, HiChevronDown, HiChevronUp } from "react-icons/hi";
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { MdAnnouncement, MdAttachMoney, MdBook, MdDescription, MdHelpOutline, MdHome, MdPerson, MdQuestionMark, MdTrolley } from "react-icons/md";
+import { MdAnnouncement, MdAttachMoney, MdBook, MdDescription, MdHelpOutline, MdHome, MdPerson, MdQuestionMark, MdTrolley, MdShoppingCart, MdListAlt } from "react-icons/md";
 
 const Sidebar = ({ open, onClose }) => {
   const { t } = useTranslation();
@@ -13,9 +13,8 @@ const Sidebar = ({ open, onClose }) => {
 
   return (
     <div
-      className={`sm:none duration-300 linear fixed !z-50 flex min-h-full flex-col bg-white pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 ${
-        open ? "translate-x-0" : "-translate-x-96"
-      }`}
+      className={`sm:none duration-300 linear fixed !z-50 flex min-h-full flex-col bg-white pb-10 shadow-2xl shadow-white/5 transition-all dark:!bg-navy-800 dark:text-white md:!z-50 lg:!z-50 xl:!z-0 ${open ? "translate-x-0" : "-translate-x-96"
+        }`}
     >
       <span
         className="absolute right-4 top-4 block cursor-pointer xl:hidden"
@@ -40,10 +39,9 @@ const Sidebar = ({ open, onClose }) => {
           <NavLink
             to="/admin/default"
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${
-                isActive
-                  ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
-                  : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
               }`
             }
           >
@@ -55,10 +53,9 @@ const Sidebar = ({ open, onClose }) => {
           <NavLink
             to="/admin/profile"
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${
-                isActive
-                  ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
-                  : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
               }`
             }
           >
@@ -68,12 +65,27 @@ const Sidebar = ({ open, onClose }) => {
         </li>
         <li className="px-4 py-2">
           <NavLink
+            to="/admin/cart"
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+              }`
+            }
+          >
+            <span className="flex-shrink-0">
+              <MdShoppingCart className="h-6 w-6 text-[#422AFB] dark:text-gray-400 hover:text-[#422AFB] dark:hover:text-white" />
+            </span>
+            {t("cart")}
+          </NavLink>
+        </li>
+        <li className="px-4 py-2">
+          <NavLink
             to="/admin/order"
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${
-                isActive
-                  ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
-                  : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
               }`
             }
           >
@@ -83,12 +95,29 @@ const Sidebar = ({ open, onClose }) => {
         </li>
         <li className="px-4 py-2">
           <NavLink
+            to="/admin/my-orders"
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+              }`
+            }
+          >
+            <span className="flex-shrink-0">
+              <MdListAlt className="h-6 w-6 text-[#422AFB] dark:text-gray-400 hover:text-[#422AFB] dark:hover:text-white" />
+            </span>
+            {t("my_orders")}
+          </NavLink>
+        </li>
+
+
+        <li className="px-4 py-2">
+          <NavLink
             to="/admin/invoices"
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${
-                isActive
-                  ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
-                  : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
               }`
             }
           >
@@ -100,10 +129,9 @@ const Sidebar = ({ open, onClose }) => {
           <NavLink
             to="/admin/payments"
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${
-                isActive
-                  ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
-                  : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
               }`
             }
           >
@@ -132,10 +160,9 @@ const Sidebar = ({ open, onClose }) => {
                 <NavLink
                   to="/admin/support/help"
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${
-                      isActive
-                        ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
-                        : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+                    `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                      ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                      : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
                     }`
                   }
                 >
@@ -147,10 +174,9 @@ const Sidebar = ({ open, onClose }) => {
                 <NavLink
                   to="/admin/announcements"
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${
-                      isActive
-                        ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
-                        : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+                    `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                      ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                      : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
                     }`
                   }
                 >
@@ -162,10 +188,9 @@ const Sidebar = ({ open, onClose }) => {
                 <NavLink
                   to="/admin/knowledge"
                   className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${
-                      isActive
-                        ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
-                        : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+                    `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                      ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                      : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
                     }`
                   }
                 >
@@ -180,10 +205,9 @@ const Sidebar = ({ open, onClose }) => {
           <NavLink
             to="/admin/services"
             className={({ isActive }) =>
-              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${
-                isActive
-                  ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
-                  : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
+              `flex items-center gap-3 rounded-lg px-3 py-2 transition-all duration-200 ${isActive
+                ? "bg-navy-50 text-[#1B254B] dark:bg-navy-700 dark:text-white font-medium"
+                : "text-gray-700 dark:text-gray-400 hover:bg-navy-50 dark:hover:bg-navy-700 hover:text-navy-700 dark:hover:text-white"
               }`
             }
           >

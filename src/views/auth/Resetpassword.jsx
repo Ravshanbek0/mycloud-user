@@ -123,9 +123,11 @@ const Resetpassword = () => {
         localStorage.removeItem("reset-email");
         localStorage.setItem("access_token", result.access);
         localStorage.setItem("refresh_token", result.refresh);
-        console.log("navigate");
-        
-        navigate("/admin/default");
+        if(localStorage.getItem("access_token")){
+          navigate("/admin/default");
+        }else{
+          navigate("/auth/sign-in");
+        }
       } else {
         const errorData = await response.json();
         console.error("Login failed:", errorData);

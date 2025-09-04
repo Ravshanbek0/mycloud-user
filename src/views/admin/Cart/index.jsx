@@ -347,24 +347,47 @@ const Cart = () => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="container mx-auto bg-white p-6 text-gray-800 dark:bg-gray-900 dark:text-gray-200">
+      <div className="container mx-auto  px-4 py-8 text-gray-800 dark:text-gray-200">
+        {/* Go back button */}
         <button
           onClick={handleBack}
-          className="mb-6 rounded-lg bg-gray-500 px-4 py-2 text-white transition duration-300 hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-800"
+          className="mb-6 inline-flex items-center gap-2 rounded-md bg-gray-500 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-800"
         >
-          {t("go_back")}
+          ← {t("go_back")}
         </button>
-        <div className="rounded-lg bg-gray-100 p-6 shadow-lg dark:bg-gray-800">
-          <h1 className="mb-4 text-2xl font-bold">{t("cart")}</h1>
-          <p className="mb-4 text-gray-600 dark:text-gray-400">{t("cart_empty")}</p>
-          <button
-            onClick={() => navigate("/admin/order")}
-            className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
-          >
-            {t("continue_shopping")}
-          </button>
+
+        {/* Card */}
+        <div className="rounded-xl bg-gray-100 p-8 shadow-xl dark:bg-gray-800">
+          <h1 className="mb-6 text-3xl font-extrabold">{t("cart")}</h1>
+
+          {/* Empty cart illustration and message */}
+          <div className="flex flex-col items-center text-center">
+            <svg
+              className="mb-4 h-24 w-24 text-gray-400 dark:text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-1.5 7.5M17 13l1.5 7.5M9 21h6"
+              />
+            </svg>
+            <p className="mb-4 text-gray-600 dark:text-gray-400">{t("cart_empty")}</p>
+
+            {/* Continue shopping button */}
+            <button
+              onClick={() => navigate("/admin/order")}
+              className="rounded-md bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+            >
+              {t("continue_shopping")}
+            </button>
+          </div>
         </div>
       </div>
+
     );
   }
 
@@ -378,183 +401,316 @@ const Cart = () => {
   }, 0);
 
   return (
-    <div className="min-h-screen p-6 dark:bg-[#0B1538]">
-      <div className="mx-auto max-w-6xl p-1">
-        <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
-          {t("cart")}
-        </h2>
-        <p className="mb-4 text-gray-600 dark:text-gray-400">
-          {t("your_shopping_cart")} ({cartItems.length} {t("items")})
-        </p>
-
-        <div className="rounded-lg border border-gray-100 bg-white shadow dark:bg-[#111C44]">
-          <div className="flex justify-between items-center px-4 py-3">
-            <h2 className="text-xl font-normal text-gray-800 dark:text-white">{t("cart")}</h2>
-            <button
-              onClick={handleBack}
-              className="rounded-md bg-gray-500 px-4 py-2 text-sm text-white transition hover:bg-gray-600 dark:bg-gray-700 dark:hover:bg-gray-800"
-            >
-              {t("go_back")}
-            </button>
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0B1538] py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("your_shopping_cart")}</h1>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">
+              {cartItems.length} {t("items")}
+            </p>
           </div>
+          <button
+            onClick={handleBack}
+            className="mt-4 sm:mt-0 flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+          >
+            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            {t("continue_shopping")}
+          </button>
+        </div>
 
-          <hr className="border-gray-300 dark:border-gray-700" />
+        {/* Progress Bar */}
+        {/* <div className="mb-10">
+          <div className="flex items-center justify-between mb-2 text-sm font-medium text-gray-600 dark:text-gray-400">
+            <span className="text-blue-600 dark:text-blue-400">{t("cart")}</span>
+            <span>{t("shipping")}</span>
+            <span>{t("payment")}</span>
+            <span>{t("confirmation")}</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+            <div className="bg-blue-600 h-2.5 rounded-full w-1/4"></div>
+          </div>
+        </div> */}
 
-          <div className="overflow-x-auto rounded p-4 pt-2">
-            <table className="min-w-full border border-gray-300 text-sm dark:border-gray-700 dark:bg-[#0B1538]">
-              <thead className="text-gray-700 dark:text-gray-300">
-                <tr>
-                  <th className="border p-3 text-left dark:border-gray-700">{t("product")}</th>
-                  <th className="border p-3 text-center dark:border-gray-700">{t("price")}</th>
-                  <th className="border p-3 text-right dark:border-gray-700">{t("actions")}</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-800 dark:text-gray-200">
-                {cartItems.map((item) => {
-                  const editState =
-                    editingItems[item.id] || { isEditing: false, domain: item.configs?.domain || "" };
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Cart Items */}
+          <div className="lg:w-2/3">
+            <div className="bg-white dark:bg-[#111C44] rounded-xl shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t("cart_items")}</h2>
+              </div>
 
-                  return (
-                    <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                      <td className="border p-3 align-top dark:border-gray-700">
-                        <div className="mb-1 font-medium">
-                          {/* configs ichidagi barcha key-value juftliklarini chiqaramiz */}
-                          {item.configs && Object.keys(item.configs).length > 0 ? (
-                            Object.entries(item.configs).map(([key, value]) => (
-                              <div key={key}>
-                                <strong>{key}: </strong>
-                                {value}
-                              </div>
-                            ))
-                          ) : (
-                            <strong>{t("no_config")}</strong>
-                          )}
+              <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                {cartItems.length === 0 ? (
+                  <div className="px-6 py-12 text-center">
+                    <svg className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                    <p className="mt-4 text-gray-500 dark:text-gray-400">{t("empty_cart")}</p>
+                  </div>
+                ) : (
+                  cartItems.map((item) => {
+                    const editState = editingItems[item.id] || { isEditing: false, domain: item.configs?.domain || "" };
+
+                    return (
+                      <div key={item.id} className="p-6 flex flex-col sm:flex-row">
+                        <div className="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6">
+                          <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-lg flex items-center justify-center">
+                            <svg className="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+                            </svg>
+                          </div>
                         </div>
 
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {t("duration_period", { count: item.plan?.period_months || 1 })}
+                        <div className="flex-grow">
+                          <div className="flex justify-between">
+                            <div>
+                              <h3 className="font-medium text-gray-900 dark:text-white">
+                                {item.configs && Object.keys(item.configs).length > 0 ? (
+                                  Object.entries(item.configs).map(([key, value]) => (
+                                    <div key={key}>
+                                      <strong>{key}: </strong>{value}
+                                    </div>
+                                  ))
+                                ) : (
+                                  t("no_config")
+                                )}
+                              </h3>
+
+                              <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                {t("duration_period", { count: item.plan?.period_months || 1 })}
+                              </p>
+
+                              {editState.isEditing && (
+                                <div className="mt-3">
+                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                    {t("domain_name")}
+                                  </label>
+                                  <div className="flex">
+                                    <input
+                                      type="text"
+                                      value={editState.domain}
+                                      onChange={(e) => handleDomainChange(item.id, e.target.value)}
+                                      className="flex-grow rounded-l-md border border-r-0 border-gray-300 dark:border-gray-700 dark:bg-gray-800 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder={t("enter_domain")}
+                                    />
+                                    <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 text-sm">
+                                      .uz
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="text-right">
+                              <p className="font-semibold text-gray-900 dark:text-white">
+                                {item.plan?.discounted_monthly_price
+                                  ? `${item.plan.discounted_monthly_price} ${t("currency_code")}`
+                                  : t("free")}
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">per month</p>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 flex space-x-3">
+                            {!editState.isEditing ? (
+                              <>
+                                <button
+                                  onClick={() => handleEditClick(item)}
+                                  className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                >
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  </svg>
+                                  {t("edit")}
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteItem(item.id)}
+                                  className="inline-flex items-center text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
+                                >
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                  {t("remove")}
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button
+                                  onClick={() => handleSaveChanges(item)}
+                                  className="inline-flex items-center text-sm font-medium text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
+                                >
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                  </svg>
+                                  {t("save_changes")}
+                                </button>
+                                <button
+                                  onClick={() => setEditingItems((prev) => ({
+                                    ...prev,
+                                    [item.id]: { ...prev[item.id], isEditing: false },
+                                  }))}
+                                  className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
+                                >
+                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                  {t("cancel")}
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
 
-                        {editState.isEditing && (
-                          <input
-                            type="text"
-                            value={editState.domain}
-                            onChange={(e) => handleDomainChange(item.id, e.target.value)}
-                            className="mt-2 w-full rounded border px-2 py-1 text-sm dark:bg-gray-800 dark:border-gray-600"
-                            placeholder={t("enter_domain")}
-                          />
-                        )}
-                      </td>
-
-                      <td className="border p-3 text-center align-middle dark:border-gray-700">
-                        {item.plan?.discounted_monthly_price
-                          ? `${item.plan.discounted_monthly_price} ${t("currency_code")}/oy`
-                          : t("free")}
-                      </td>
-
-                      <td className="border p-3 text-right align-middle space-x-2 dark:border-gray-700">
-                        {!editState.isEditing ? (
-                          <>
-                            <button
-                              onClick={() => handleDeleteItem(item.id)}
-                              className="text-orange-500 hover:text-orange-600"
-                              title={t("remove_item")}
-                            >
-                              ✖
-                            </button>
-                            <button
-                              onClick={() => handleEditClick(item)}
-                              className="text-blue-500 hover:text-blue-600"
-                              title={t("update_item")}
-                            >
-                              ✎
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => handleSaveChanges(item)}
-                              className="text-green-500 hover:text-green-600"
-                              title={t("save_changes")}
-                            >
-                              ✔
-                            </button>
-                            <button
-                              onClick={() =>
-                                setEditingItems((prev) => ({
-                                  ...prev,
-                                  [item.id]: { ...prev[item.id], isEditing: false },
-                                }))
-                              }
-                              className="text-red-500 hover:text-gray-600"
-                              title={t("cancel_edit")}
-                            >
-                              ✖
-                            </button>
-                          </>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-
-            </table>
-
-            {nextUrl && (
-              <button
-                onClick={handleLoadMore}
-                className="mt-4 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-                disabled={loading}
-              >
-                {t("load_more")}
-              </button>
-            )}
+              {nextUrl && (
+                <div className="px-6 py-4 border-t border-gray-100 dark:border-gray-800">
+                  <button
+                    onClick={handleLoadMore}
+                    className="w-full flex items-center justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50 transition-colors"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-700 dark:text-blue-300" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {t("loading")}
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        {t("load_more")}
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          <hr className="border-gray-300 dark:border-gray-700" />
+          {/* Order Summary */}
+          <div className="lg:w-1/3">
+            <div className="bg-white dark:bg-[#111C44] rounded-xl shadow-sm overflow-hidden sticky top-6">
+              <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t("order_summary")}</h2>
+              </div>
 
-          <div className="px-4 py-4 space-y-4">
-            <div className="flex justify-between">
-              <span>{t("have_coupon_code")}</span>
-              <span className="cursor-pointer text-orange-500 hover:underline">{t("apply_coupon")}</span>
-            </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">{t("subtotal")}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">
+                      {totalPrice > 0 ? `${totalPrice} ${t("currency_code")}` : t("free")}
+                    </span>
+                  </div>
 
-            <div className="flex justify-between font-semibold text-lg">
-              <p>{t("total")}</p>
-              <p>{totalPrice > 0 ? totalPrice : t("free")}</p>
-            </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">{t("shipping")}</span>
+                    <span className="font-medium text-green-600 dark:text-green-400">{t("free")}</span>
+                  </div>
 
-            {totalPrice > 0 && (
-              <>
-                <div>
-                  <p className="mb-2 font-semibold">{t("payment_options")}</p>
-                  <div className="space-y-2">
-                    {["click", "payme", "bank_card"].map((method) => (
-                      <label key={method} className="flex items-center">
-                        <input
-                          type="radio"
-                          name="payment"
-                          value={method}
-                          checked={selectedPaymentMethod === method}
-                          onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-                          className="mr-2"
-                        />
-                        {t(`pay_by_${method}`)}
-                      </label>
-                    ))}
+                  {totalPrice > 0 && (
+                    <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 dark:text-gray-400">{t("estimated_tax")}</span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {totalPrice * 0.15} {t("currency_code")}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-semibold text-gray-900 dark:text-white">{t("total")}</span>
+                      <span className="text-lg font-bold text-gray-900 dark:text-white">
+                        {totalPrice > 0 ? `${totalPrice * 1.15} ${t("currency_code")}` : t("free")}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t("including_tax")}</p>
                   </div>
                 </div>
 
-                <button
-                  onClick={handleProceedToPayment}
-                  className="mt-6 w-full rounded bg-blue-600 py-2 text-white hover:bg-blue-700"
-                  disabled={loading}
-                >
-                  {loading ? t("processing") : t("checkout")}
-                </button>
-              </>
-            )}
+                {totalPrice > 0 && (
+                  <>
+                    <div className="mt-6">
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">{t("payment_method")}</h3>
+                      <div className="space-y-2">
+                        {["click", "payme", "bank_card"].map((method) => (
+                          <div key={method} className="flex items-center">
+                            <input
+                              id={`payment-${method}`}
+                              name="payment"
+                              type="radio"
+                              value={method}
+                              checked={selectedPaymentMethod === method}
+                              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+                              className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
+                            />
+                            <label htmlFor={`payment-${method}`} className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                              {t(`pay_by_${method}`)}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={handleProceedToPayment}
+                      disabled={loading}
+                      className="mt-6 w-full bg-blue-600 border border-transparent rounded-md shadow-sm py-3 px-4 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-75 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {loading ? (
+                        <div className="flex items-center justify-center">
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          {t("processing")}
+                        </div>
+                      ) : (
+                        t("proceed_to_checkout")
+                      )}
+                    </button>
+                  </>
+                )}
+
+                <div className="mt-6 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                  {t("secure_checkout")}
+                </div>
+              </div>
+            </div>
+
+            {/* Coupon Code Section */}
+            <div className="mt-6 bg-white dark:bg-[#111C44] rounded-xl shadow-sm overflow-hidden">
+              <div className="p-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t("have_coupon_code")}</h3>
+                <div className="flex">
+                  <input
+                    type="text"
+                    placeholder={t("enter_coupon_code")}
+                    className="flex-grow rounded-l-md border border-r-0 border-gray-300 dark:border-gray-700 dark:bg-gray-800 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    {t("apply")}
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
