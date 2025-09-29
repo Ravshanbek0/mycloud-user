@@ -22,6 +22,9 @@ import {
 } from "react-icons/md";
 import SignIn from "views/auth/SignIn";
 import Resetpassword from "views/auth/Resetpassword";
+import OrdersPage from "views/admin/OrdersPage/OrdersPage";
+import OrderService from "views/admin/orderService/OrderService";
+import OrderServiceDetail from "views/admin/order-service-detail/OrderServiceDetail";
 
 const routes = [
   {
@@ -60,12 +63,34 @@ const routes = [
     component: <Invoices />,
   },
   {
+    name: "Myorders",
+    layout: "/admin",
+    path: "my-orders",
+    icon: <MdDescription className="h-6 w-6" />,
+    component: <OrdersPage />,
+  },
+  {
     name: "Payments",
     layout: "/admin",
     path: "payments",
     icon: <MdAttachMoney className="h-6 w-6" />,
     component: <Payments />,
   },
+  {
+    name: "Order-services",
+    layout: "/admin",
+    path: "order-services",
+    icon: <MdAttachMoney className="h-6 w-6" />,
+    component: <OrderService />,
+  },
+  {
+    name: "Order-service Detail",
+    layout: "/admin",
+    path: "order-services/:serviceId",  // Bu yerda serviceId ni olish mumkin
+    icon: <MdQuestionMark className="h-6 w-6" />,
+    component: <OrderServiceDetail />  // Services sahifasini ko'rsatish
+  },
+  
   {
     name: "Support",
     layout: "/admin",

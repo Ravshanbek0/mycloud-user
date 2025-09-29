@@ -159,6 +159,8 @@ const Order = () => {
         }
 
         const data = await response.json();
+        console.log(data);
+        
         setTariffDetails(data);
         setSelectedPlan(data.plans && data.plans.length > 0 ? data.plans[0] : null);
         if (data.name.toLowerCase().includes("host")) {
@@ -187,76 +189,63 @@ const Order = () => {
       setError(t("missing_details"));
       return;
     }
-
-    // Hosting uchun domen majburiy
+  
     if (tariffDetails.name.toLowerCase().includes("host") && !domainConfig.domain) {
       setError(t("domain_required"));
       return;
     }
-
-    // VPS uchun OS majburiy
-    if (tariffDetails.name.toLowerCase().includes("vps") && !selectedOS) {
+  
+    if (tariffDetails.name.toLowerCase().includes("vps") && !selectedPlan) {
       setError(t("os_required"));
       return;
     }
-
+  
     setLoading(true);
     try {
       const token = localStorage.getItem("access_token");
       if (!token) throw new Error(t("auth_issue"));
-
+  
       const addToCartPromises = [];
-
-      // 🟢 Colocation: har bir addon alohida qo'shiladi
+  
+      const basePayload = {
+        plan: selectedPlan.id,
+        cart: 1,
+        configs: {
+          plan_details: selectedPlan.discounted_monthly_price,
+          tariff_name: selectedPlan.tariff_name, // 🟢 butun obyektni qo‘shamiz
+          period_months: selectedPlan.period_months, // 🟢 butun obyektni qo‘shamiz
+        },
+      };
+  
       if (tariffDetails.name.toLowerCase().includes("colocation")) {
-        const payload = {
-          plan: selectedPlan.id,
-          cart: 1,
-          configs: {
-            colocation: tariffDetails.name,
-            addon: selectedAddon.name,
-          },
-        };
-
-        addToCartPromises.push(
-          fetch(`${apiUrlenv}shopping-cart-item/auth-user-cart-item/create/`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          })
-        );
-      } else {
-        // qolgan xizmatlar uchun oldingidek
-        const payload = {
-          plan: selectedPlan.id,
-          cart: 1,
-          configs: {},
-        };
-
-        if (tariffDetails.name.toLowerCase().includes("host")) {
-          payload.configs = { domain: `${domainConfig.domain}${domainConfig.extension || ""}` };
-        } else if (tariffDetails.name.toLowerCase().includes("vps")) {
-          payload.configs = { os: selectedOS.name };
-        } else {
-          payload.configs = { type: tariffDetails.name };
+        basePayload.configs.colocation = tariffDetails.name;
+        if (selectedAddon) {
+          basePayload.configs.addon = selectedAddon.name;
+        }if (selectedAddon) {
+          basePayload.configs.addon_id = selectedAddon.id;
         }
-
-        addToCartPromises.push(
-          fetch(`${apiUrlenv}shopping-cart-item/auth-user-cart-item/create/`, {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          })
-        );
+      } else if (tariffDetails.name.toLowerCase().includes("host")) {
+        basePayload.configs.domain = `${domainConfig.domain}${domainConfig.extension || ""}`;
+      } else if (tariffDetails.name.toLowerCase().includes("vps")) {
+        basePayload.configs.vps = tariffDetails.name; 
+        if (selectedOS) {
+          basePayload.configs.vps_os = selectedOS
+        }// VPS-250 kabi
+      } else {
+        basePayload.configs.type = tariffDetails.name;
       }
-
-      // 🟢 Javoblarni tekshirish
+  
+      addToCartPromises.push(
+        fetch(`${apiUrlenv}shopping-cart-item/auth-user-cart-item/create/`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(basePayload),
+        })
+      );
+  
       const responses = await Promise.all(addToCartPromises);
       for (const response of responses) {
         if (!response.ok) {
@@ -264,7 +253,7 @@ const Order = () => {
           throw new Error(errorData.detail || errorData.plan?.[0] || t("cart_item_creation_error"));
         }
       }
-
+  
       navigate("/admin/cart");
     } catch (err) {
       console.error("Error adding to cart:", err);
@@ -273,6 +262,7 @@ const Order = () => {
       setLoading(false);
     }
   };
+  
 
   const handleBack = () => {
     setSelectedTariff(null);
@@ -442,6 +432,7 @@ const Order = () => {
                         onChange={(e) => {
                           const addon = colocationAddons.find(a => a.id === parseInt(e.target.value));
                           setSelectedAddon(addon);
+                          
                         }}
                       >
                         <option value="" disabled>{t("select_addon")}</option>

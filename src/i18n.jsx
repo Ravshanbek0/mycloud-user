@@ -10,7 +10,7 @@ i18n
   .use(initReactI18next)
   .init({
     fallbackLng: "ru",
-    debug: process.env.NODE_ENV === "development",
+    debug: false,
     resources: {
       uz: { translation: uzTranslation },
       en: { translation: enTranslation },

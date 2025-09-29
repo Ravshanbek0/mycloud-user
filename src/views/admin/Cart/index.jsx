@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-
+import { FiXCircle } from "react-icons/fi";
 const Cart = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -14,6 +15,8 @@ const Cart = () => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("click");
   const [editingItems, setEditingItems] = useState({}); // { [id]: { isEditing: bool, domain: "" } }
   const apiUrlEnv = process.env.REACT_APP_API_URL;
+  const [coupon, setCoupon] = useState("");
+
 
 
   // edit mode yoqish
@@ -40,13 +43,20 @@ const Cart = () => {
 
   // saqlash
   const handleSaveChanges = (item) => {
-    const editedDomain = editingItems[item.id]?.domain || "";
+    const isColocation = "colocation" in (item.configs || {});
+
+    const editedDomain = !isColocation ? editingItems[item.id]?.domain || item.configs?.domain || "" : undefined;
+    const editedAddon = isColocation
+      ? editingItems[item.id]?.addon || item.configs?.addon || ""
+      : item.configs?.addon || "";
 
     handleUpdateItem(item.id, {
-      plan: item.plan.id,
+      plan: item.plan,
       configs: {
         ...item.configs,
-        domain: editedDomain,
+        ...(isColocation
+          ? { colocation: item.configs.colocation, addon: editedAddon }
+          : { domain: editedDomain }),
       },
     });
 
@@ -55,6 +65,9 @@ const Cart = () => {
       [item.id]: { ...prev[item.id], isEditing: false },
     }));
   };
+
+
+
 
   const fetchCartItems = async (url) => {
     setLoading(true);
@@ -273,52 +286,105 @@ const Cart = () => {
       setLoading(false);
     }
   };
-
+  const clearCart = async () => {
+    const token = localStorage.getItem("access_token")
+    try {
+      const response = await axios.post(
+        `${apiUrlEnv}shopping-cart/auth-user-cart/clear`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setCartItems([])
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+    }
+  };
   const handleProceedToPayment = async () => {
     if (cartItems.length === 0) {
       setError(t("cart_empty"));
       return;
     }
-
+    const token = localStorage.getItem("access_token")
     setLoading(true);
     try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        throw new Error(t("auth_issue"));
-      }
-
-      const payload = {
-        cart_items: cartItems.map((item) => ({
-          id: item.id,
-          plan: item.plan.id,
-          configs: item.configs || {},
-        })),
-        payment_method: selectedPaymentMethod,
-      };
-
-      const response = await fetch(
-        `${apiUrlEnv}shopping-cart/auth-user-cart/confirm/`,
+      // 1. Order yaratish
+      const orderRes = await axios.post(
+        `${apiUrlEnv}orders/auth-user-order/create/`,
         {
-          method: "POST",
+          payment_method: selectedPaymentMethod, // yoki formdan kelgan
+          reason: "test reason",
+          notes: "test notes",
+        },
+        {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
           },
-          body: JSON.stringify(payload),
         }
       );
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || t("payment_confirmation_error"));
-      }
+      const orderId = orderRes.data?.id;
+      if (!orderId) throw new Error("Order ID qaytmadi");
 
-      navigate("/admin/payments");
-    } catch (err) {
-      console.error("Error confirming payment:", err);
-      setError(err.message);
+      // 2. Cart itemlarni create qilish
+      await Promise.all(
+        cartItems.map(async (item) => {
+          const body = {
+            order: orderId,
+            plan: item.plan,
+          };
+
+          if (item.configs?.domain) {
+            body.hosting_config = {
+              domain: item.configs.domain,
+            };
+          } else if (item.configs?.addon_id) {
+            body.colocation_config = {
+              addons: [item.configs?.addon_id], // addon id bo‘lsa shu yerga qo‘yiladi
+            };
+          } else if (item.configs?.vds) {
+            body.vds_config = {
+              os: 0, // default qiymat
+              vcpu: 1,
+              vram_gb: 1,
+              vssd_gb: 20,
+              ips: 1,
+              internet_mbs: 10,
+              tasix_mbs: 10,
+            };
+          } else if (item.configs?.vps_os) {
+            body.vps_config = {
+              os: item.configs.vps_os?.id,
+            };
+          } else if (item.configs?.type) {
+            { }
+          }
+
+          return axios.post(
+            `${apiUrlEnv}order-services/auth-user-order-service/create/`,
+            body,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+        })
+      );
+
+      // 3. Shopping cart clear
+      clearCart()
+      navigate("/admin/my-orders")
+
+      return { success: true };
+    } catch (error) {
+      console.error("Xatolik:", error.response?.data || error.message);
+      return { success: false, error };
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   };
 
@@ -391,25 +457,29 @@ const Cart = () => {
     );
   }
 
-  const totalPrice = cartItems.reduce((total, item) => {
-    const price = item.plan?.discounted_monthly_price || 0;
-    const months = item.plan?.period_months || 1;
-    const addonPrice = item.configs?.addon
-      ? colocationAddons.find((addon) => addon.name === item.configs.addon)?.monthly_price || 0
-      : 0;
-    return total + (price * months) + addonPrice;
+  const totalPrice = cartItems.reduce((sum, item) => {
+    const price = Number(item.configs?.plan_details || 0);
+    return sum + price;
   }, 0);
+  // Summani "1 234 567 so'm" shaklida formatlash
+  // Summani "1 234 567 so'm" shaklida formatlash
+  const formatPrice = (value) => {
+    if (!value) return "0 so'm";
+    return new Intl.NumberFormat("ru-RU", {
+      useGrouping: true,
+    }).format(value) + " so'm";
+  };
+
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0B1538] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-          <div>
+          <div className="flex justify-between w-full">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t("your_shopping_cart")}</h1>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">
-              {cartItems.length} {t("items")}
-            </p>
+
           </div>
           <button
             onClick={handleBack}
@@ -439,8 +509,19 @@ const Cart = () => {
           {/* Cart Items */}
           <div className="lg:w-2/3">
             <div className="bg-white dark:bg-[#111C44] rounded-xl shadow-sm overflow-hidden">
-              <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800">
+              <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 dark:border-gray-800">
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t("cart_items")}</h2>
+                <button
+                  onClick={() => {
+                    if (window.confirm("Rostdan ham davom ettirasizmi?")) {
+                      clearCart()
+                    }
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+                >
+                  <FiXCircle size={20} />
+                  {t("clear_all")}
+                </button>
               </div>
 
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -456,83 +537,158 @@ const Cart = () => {
                     const editState = editingItems[item.id] || { isEditing: false, domain: item.configs?.domain || "" };
 
                     return (
-                      <div key={item.id} className="p-6 flex flex-col sm:flex-row">
-                        <div className="flex-shrink-0 mb-4 sm:mb-0 sm:mr-6">
-                          <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 rounded-lg flex items-center justify-center">
-                            <svg className="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
-                            </svg>
-                          </div>
+                      <div
+                        key={item.id}
+                        className="p-6 flex flex-col sm:flex-row sm:items-start gap-6 bg-white dark:bg-gray-800 rounded-lg shadow-md"
+                      >
+                        {/* Chap taraf: tariff_name */}
+                        <div className="flex-shrink-0 w-full sm:w-28 h-28 bg-gray-100 dark:bg-gray-900 rounded-xl flex items-center justify-center p-4 shadow-md">
+                          <span className="text-gray-900 dark:text-gray-100 font-semibold text-center text-sm leading-relaxed break-words whitespace-normal max-w-full">
+                            {item.configs.tariff_name || "No Name"}
+                          </span>
                         </div>
 
-                        <div className="flex-grow">
-                          <div className="flex justify-between">
-                            <div>
+                        {/* O'ng taraf: Asosiy ma'lumotlar */}
+                        <div className="flex-grow flex flex-col justify-between w-full">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 sm:gap-0">
+                            <div className="sm:max-w-[65%]">
                               <h3 className="font-medium text-gray-900 dark:text-white">
                                 {item.configs && Object.keys(item.configs).length > 0 ? (
-                                  Object.entries(item.configs).map(([key, value]) => (
-                                    <div key={key}>
-                                      <strong>{key}: </strong>{value}
-                                    </div>
-                                  ))
+                                  Object.entries(item.configs)
+                                    .filter(
+                                      ([key, value]) =>
+                                        key !== "plan_details" &&
+                                        key !== "tariff_name" &&
+                                        key !== "period_months" &&
+                                        key !== "addon_id" &&
+                                        typeof value !== "object"
+                                    )
+                                    .map(([key, value]) => (
+                                      <div key={key} className="break-words">
+                                        <strong>{key}: </strong>
+                                        {value}
+                                      </div>
+                                    ))
                                 ) : (
                                   t("no_config")
                                 )}
                               </h3>
 
                               <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                {t("duration_period", { count: item.plan?.period_months || 1 })}
+                                {t("duration_period", { count: parseFloat(item.configs?.period_months) || 1 })}
                               </p>
 
+                              {/* Edit mode inputs */}
                               {editState.isEditing && (
-                                <div className="mt-3">
-                                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                    {t("domain_name")}
-                                  </label>
-                                  <div className="flex">
-                                    <input
-                                      type="text"
-                                      value={editState.domain}
-                                      onChange={(e) => handleDomainChange(item.id, e.target.value)}
-                                      className="flex-grow rounded-l-md border border-r-0 border-gray-300 dark:border-gray-700 dark:bg-gray-800 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-                                      placeholder={t("enter_domain")}
-                                    />
-                                    <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 text-sm">
-                                      .uz
-                                    </span>
-                                  </div>
+                                <div className="mt-3 space-y-3">
+                                  {"domain" in (item.configs || {}) && (
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {t("domain_name")}
+                                      </label>
+                                      <div className="flex">
+                                        <input
+                                          type="text"
+                                          value={editState.domain || item.configs?.domain || ""}
+                                          onChange={(e) =>
+                                            setEditingItems((prev) => ({
+                                              ...prev,
+                                              [item.id]: { ...prev[item.id], domain: e.target.value },
+                                            }))
+                                          }
+                                          className="flex-grow rounded-l-md border border-r-0 border-gray-300 dark:border-gray-700 dark:bg-gray-800 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                          placeholder={t("enter_domain")}
+                                        />
+                                        <span className="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-300 text-sm">
+                                          .uz
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {"colocation" in (item.configs || {}) && (
+                                    <div>
+                                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                        {t("colocation_addon")}
+                                      </label>
+                                      <select
+                                        value={editState.addon || item.configs?.addon || ""}
+                                        onChange={(e) =>
+                                          setEditingItems((prev) => ({
+                                            ...prev,
+                                            [item.id]: {
+                                              ...prev[item.id],
+                                              addon: e.target.value,
+                                            },
+                                          }))
+                                        }
+                                        className="w-full rounded-md border border-gray-300 dark:border-gray-700 dark:bg-gray-800 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                                      >
+                                        <option value="">{t("select_addon")}</option>
+                                        {colocationAddons.map((addon) => (
+                                          <option key={addon.id} value={addon.name}>
+                                            {addon.name} ({addon.monthly_price} {t("currency_code")})
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
 
-                            <div className="text-right">
-                              <p className="font-semibold text-gray-900 dark:text-white">
-                                {item.plan?.discounted_monthly_price
-                                  ? `${item.plan.discounted_monthly_price} ${t("currency_code")}`
-                                  : t("free")}
+                            {/* Narx va per month */}
+                            <div className="text-right sm:max-w-[30%] min-w-[120px] flex-shrink-0">
+                              <p className="font-semibold text-gray-900 dark:text-white break-words">
+                                {item.configs?.plan_details ? formatPrice(item.configs?.plan_details) : t("free")}
                               </p>
-                              <p className="text-sm text-gray-500 dark:text-gray-400">per month</p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">{t("per_month")}</p>
                             </div>
                           </div>
 
-                          <div className="mt-4 flex space-x-3">
+                          {/* Tugmalar */}
+                          <div className="mt-4 flex flex-wrap gap-3">
                             {!editState.isEditing ? (
                               <>
                                 <button
                                   onClick={() => handleEditClick(item)}
                                   className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                 >
-                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                  <svg
+                                    className="w-4 h-4 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                    />
                                   </svg>
                                   {t("edit")}
                                 </button>
                                 <button
-                                  onClick={() => handleDeleteItem(item.id)}
+                                  onClick={() => {
+                                    if (window.confirm("Rostdan ham davom ettirasizmi?")) {
+                                      handleDeleteItem(item.id);
+                                    }
+                                  }}
                                   className="inline-flex items-center text-sm font-medium text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300"
                                 >
-                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  <svg
+                                    className="w-4 h-4 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
                                   </svg>
                                   {t("remove")}
                                 </button>
@@ -543,19 +699,31 @@ const Cart = () => {
                                   onClick={() => handleSaveChanges(item)}
                                   className="inline-flex items-center text-sm font-medium text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
                                 >
-                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg
+                                    className="w-4 h-4 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                   </svg>
                                   {t("save_changes")}
                                 </button>
                                 <button
-                                  onClick={() => setEditingItems((prev) => ({
-                                    ...prev,
-                                    [item.id]: { ...prev[item.id], isEditing: false },
-                                  }))}
+                                  onClick={() =>
+                                    setEditingItems((prev) => ({
+                                      ...prev,
+                                      [item.id]: { ...prev[item.id], isEditing: false },
+                                    }))
+                                  }
                                   className="inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
                                 >
-                                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg
+                                    className="w-4 h-4 mr-1"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                   </svg>
                                   {t("cancel")}
@@ -565,6 +733,7 @@ const Cart = () => {
                           </div>
                         </div>
                       </div>
+
                     );
                   })
                 )}
@@ -600,54 +769,79 @@ const Cart = () => {
           </div>
 
           {/* Order Summary */}
-          <div className="lg:w-1/3">
-            <div className="bg-white dark:bg-[#111C44] rounded-xl shadow-sm overflow-hidden sticky top-6">
+          <div className="lg:w-1/3 flex flex-col gap-6">
+            {/* Order Summary */}
+            <div className="bg-white dark:bg-[#111C44] rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-5 border-b border-gray-100 dark:border-gray-800">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{t("order_summary")}</h2>
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {t("order_summary")}
+                </h2>
               </div>
 
               <div className="p-6">
                 <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">{t("subtotal")}</span>
+                  {/* Subtotal */}
+                  {/* <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {t("subtotal")}
+                    </span>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      {totalPrice > 0 ? `${totalPrice} ${t("currency_code")}` : t("free")}
+                      {totalPrice > 0
+                        ? `${totalPrice} ${t("currency_code")}`
+                        : t("free")}
+                    </span>
+                  </div> */}
+
+                  {/* Shipping */}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {t("installing")}
+                    </span>
+                    <span className="font-medium text-green-600 dark:text-green-400">
+                      {t("free")}
                     </span>
                   </div>
 
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">{t("shipping")}</span>
-                    <span className="font-medium text-green-600 dark:text-green-400">{t("free")}</span>
-                  </div>
-
-                  {totalPrice > 0 && (
+                  {/* Estimated Tax */}
+                  {/* {totalPrice > 0 && (
                     <div className="pt-4 border-t border-gray-100 dark:border-gray-800">
                       <div className="flex justify-between items-center">
-                        <span className="text-gray-600 dark:text-gray-400">{t("estimated_tax")}</span>
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {t("estimated_tax")}
+                        </span>
                         <span className="font-medium text-gray-900 dark:text-white">
-                          {totalPrice * 0.15} {t("currency_code")}
+                          {(totalPrice)} {t("currency_code")}
                         </span>
                       </div>
                     </div>
-                  )}
+                  )} */}
 
+                  {/* Total */}
                   <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex justify-between items-center">
-                      <span className="text-lg font-semibold text-gray-900 dark:text-white">{t("total")}</span>
-                      <span className="text-lg font-bold text-gray-900 dark:text-white">
-                        {totalPrice > 0 ? `${totalPrice * 1.15} ${t("currency_code")}` : t("free")}
+                      <span className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {t("total")}
                       </span>
+                      <span className="font-medium text-gray-900 dark:text-white">
+                        {totalPrice > 0 ? formatPrice(totalPrice) : t("free")}
+                      </span>
+
                     </div>
-                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{t("including_tax")}</p>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      {t("including_tax")}
+                    </p>
                   </div>
                 </div>
 
+                {/* Payment Method */}
                 {totalPrice > 0 && (
                   <>
                     <div className="mt-6">
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">{t("payment_method")}</h3>
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
+                        {t("payment_method")}
+                      </h3>
                       <div className="space-y-2">
-                        {["click", "payme", "bank_card"].map((method) => (
+                        {["click", "payme", "bank_transaction"].map((method) => (
                           <div key={method} className="flex items-center">
                             <input
                               id={`payment-${method}`}
@@ -658,7 +852,10 @@ const Cart = () => {
                               onChange={(e) => setSelectedPaymentMethod(e.target.value)}
                               className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600"
                             />
-                            <label htmlFor={`payment-${method}`} className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <label
+                              htmlFor={`payment-${method}`}
+                              className="ml-3 block text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
                               {t(`pay_by_${method}`)}
                             </label>
                           </div>
@@ -666,6 +863,7 @@ const Cart = () => {
                       </div>
                     </div>
 
+                    {/* Proceed Button */}
                     <button
                       onClick={handleProceedToPayment}
                       disabled={loading}
@@ -673,9 +871,24 @@ const Cart = () => {
                     >
                       {loading ? (
                         <div className="flex items-center justify-center">
-                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <svg
+                            className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
                           </svg>
                           {t("processing")}
                         </div>
@@ -686,26 +899,28 @@ const Cart = () => {
                   </>
                 )}
 
-                <div className="mt-6 flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  {t("secure_checkout")}
-                </div>
+
               </div>
             </div>
 
             {/* Coupon Code Section */}
-            <div className="mt-6 bg-white dark:bg-[#111C44] rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white dark:bg-[#111C44] rounded-xl shadow-sm overflow-hidden">
               <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">{t("have_coupon_code")}</h3>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  {t("have_coupon_code")}
+                </h3>
                 <div className="flex">
                   <input
                     type="text"
+                    value={coupon}
+                    onChange={(e) => setCoupon(e.target.value)}
                     placeholder={t("enter_coupon_code")}
                     className="flex-grow rounded-l-md border border-r-0 border-gray-300 dark:border-gray-700 dark:bg-gray-800 px-3 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
                   />
-                  <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                  <button
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-r-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    onClick={() => alert(`Coupon applied: ${coupon}`)}
+                  >
                     {t("apply")}
                   </button>
                 </div>
